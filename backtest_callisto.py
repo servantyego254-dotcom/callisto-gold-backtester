@@ -1,4 +1,4 @@
-# 1. INSTALL LIBRARIES
+# INSTALL LIBRARIES
 !pip install pandas numpy backtesting yfinance
 
 import pandas as pd
@@ -6,7 +6,7 @@ import numpy as np
 import yfinance as yf
 from backtesting import Backtest, Strategy
 
-# 2. DOWNLOAD GOLD DATA
+# DOWNLOAD GOLD DATA
 print("Downloading Gold Data...")
 data = yf.download(tickers="GC=F", period="1mo", interval="1h")
 
@@ -21,7 +21,7 @@ data = data.rename(columns={
     "Volume": "Volume"
 }).dropna()
 
-# 3. TRADING STRATEGY
+# TRADING STRATEGY
 class CallistoActiveTrader(Strategy):
     def init(self):
         self.ma_fast = self.I(lambda x: pd.Series(x).rolling(6).mean(), self.data.Close)
@@ -34,7 +34,7 @@ class CallistoActiveTrader(Strategy):
             elif self.ma_fast[-1] < self.ma_slow[-1]:
                 self.sell(sl=self.data.Close[-1] + 5.0, tp=self.data.Close[-1] - 10.0)
 
-# 4. RUN BACKTEST
+# RUN BACKTEST
 bt = Backtest(
     data, 
     CallistoActiveTrader, 
