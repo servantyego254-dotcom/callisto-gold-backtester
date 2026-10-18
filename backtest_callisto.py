@@ -18,18 +18,19 @@ data = data.rename(columns={
     "Volume": "Volume"
 }).dropna()
 
-# 2. TRADING STRATEGY
+# 2. ACTIVE TRADING STRATEGY (Guaranteed Trade Execution)
 class CallistoActiveTrader(Strategy):
     def init(self):
-        self.ma_fast = self.I(lambda x: pd.Series(x).rolling(6).mean(), self.data.Close)
-        self.ma_slow = self.I(lambda x: pd.Series(x).rolling(18).mean(), self.data.Close)
+        # Simple momentum indicator
+        self.sma = self.I(lambda x: pd.Series(x).rolling(5).mean(), self.data.Close)
 
     def next(self):
         if not self.position:
-            if self.ma_fast[-1] > self.ma_slow[-1]:
-                self.buy(sl=self.data.Close[-1] - 5.0, tp=self.data.Close[-1] + 10.0)
-            elif self.ma_fast[-1] < self.ma_slow[-1]:
-                self.sell(sl=self.data.Close[-1] + 5.0, tp=self.data.Close[-1] - 10.0)
+            # Enter trades based on price momentum relative to SMA
+            if self.data.Close[-1] > self.sma[-1]:
+                self.buy(sl=self.data.Close[-1] - 4.0, tp=self.data.Close[-1] + 8.0)
+            else:
+                self.sell(sl=self.data.Close[-1] + 4.0, tp=self.data.Close[-1] - 8.0)
 
 # 3. RUN BACKTEST
 bt = Backtest(
@@ -41,5 +42,5 @@ bt = Backtest(
 )
 
 stats = bt.run()
-print("\n=== BACKTEST RESULTS ===")
+print("\n=== CALLISTOFX BACKTEST RESULTS ===")
 print(stats)
