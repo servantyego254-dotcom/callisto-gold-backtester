@@ -18,29 +18,25 @@ data = data.rename(columns={
     "Volume": "Volume"
 }).dropna()
 
-# 2. ACTIVE TRADING STRATEGY (Guaranteed Trade Execution)
-class CallistoActiveTrader(Strategy):
-    def init(self):
-        # Simple momentum indicator
-        self.sma = self.I(lambda x: pd.Series(x).rolling(5).mean(), self.data.Close)
-
+# 2. GUARANTEED EXECUTION STRATEGY (No indicators to fail)
+class CallistoGuaranteed(Strategy):
     def next(self):
         if not self.position:
-            # Enter trades based on price momentum relative to SMA
-            if self.data.Close[-1] > self.sma[-1]:
-                self.buy(sl=self.data.Close[-1] - 4.0, tp=self.data.Close[-1] + 8.0)
+            # Buy if candle is green, Sell if candle is red
+            if self.data.Close[-1] > self.data.Open[-1]:
+                self.buy(sl=self.data.Close[-1] - 5.0, tp=self.data.Close[-1] + 10.0)
             else:
-                self.sell(sl=self.data.Close[-1] + 4.0, tp=self.data.Close[-1] - 8.0)
+                self.sell(sl=self.data.Close[-1] + 5.0, tp=self.data.Close[-1] - 10.0)
 
 # 3. RUN BACKTEST
 bt = Backtest(
     data, 
-    CallistoActiveTrader, 
+    CallistoGuaranteed, 
     cash=1000, 
     commission=0.0002, 
     exclusive_orders=True
 )
 
 stats = bt.run()
-print("\n=== CALLISTOFX BACKTEST RESULTS ===")
+print("\n=== FINAL BACKTEST RESULTS ===")
 print(stats)
