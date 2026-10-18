@@ -6,7 +6,7 @@ import numpy as np
 import yfinance as yf
 from backtesting import Backtest, Strategy
 
-# 2. DOWNLOAD 1 MONTH OF GOLD DATA
+# 2. DOWNLOAD GOLD DATA
 print("Downloading Gold Data...")
 data = yf.download(tickers="GC=F", period="1mo", interval="1h")
 
@@ -21,21 +21,17 @@ data = data.rename(columns={
     "Volume": "Volume"
 }).dropna()
 
-# 3. STRATEGY GUARANTEED TO EXECUTE TRADES
+# 3. TRADING STRATEGY
 class CallistoActiveTrader(Strategy):
     def init(self):
-        # Fast and Slow Moving Averages to capture trend swings
         self.ma_fast = self.I(lambda x: pd.Series(x).rolling(6).mean(), self.data.Close)
         self.ma_slow = self.I(lambda x: pd.Series(x).rolling(18).mean(), self.data.Close)
 
     def next(self):
-        # Take trades whenever moving averages cross
         if not self.position:
             if self.ma_fast[-1] > self.ma_slow[-1]:
-                # Buy Entry with $5 Stop Loss, $10 Take Profit
                 self.buy(sl=self.data.Close[-1] - 5.0, tp=self.data.Close[-1] + 10.0)
             elif self.ma_fast[-1] < self.ma_slow[-1]:
-                # Sell Entry
                 self.sell(sl=self.data.Close[-1] + 5.0, tp=self.data.Close[-1] - 10.0)
 
 # 4. RUN BACKTEST
@@ -48,5 +44,5 @@ bt = Backtest(
 )
 
 stats = bt.run()
-print("\n=== SUCCESS: BACKTEST RESULTS ===")
+print("\n=== BACKTEST RESULTS ===")
 print(stats)
