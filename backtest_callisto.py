@@ -1,13 +1,9 @@
-# 1. INSTALL LIBRARIES
-!pip install pandas numpy backtesting yfinance
-
-# 2. IMPORT LIBRARIES
 import pandas as pd
 import numpy as np
 import yfinance as yf
 from backtesting import Backtest, Strategy
 
-# 3. DOWNLOAD GOLD (XAUUSD) 5-MINUTE DATA
+# 1. DOWNLOAD GOLD (XAUUSD) 5-MINUTE DATA
 print("Downloading 5M Gold Data...")
 data = yf.download(tickers="GC=F", period="5d", interval="5m")
 
@@ -23,14 +19,13 @@ data = data.rename(columns={
     "Volume": "Volume"
 }).dropna()
 
-# 4. DEFINE CALLISTOFX STRATEGY MODEL
+# 2. DEFINE CALLISTOFX STRATEGY MODEL
 class CallistoTRC(Strategy):
-    tp_pips = 1.5      # Take Profit ($1.50 Gold move / 15-20 pips)
+    tp_pips = 1.5      # Take Profit ($1.50 Gold move)
     sl_pips = 1.0      # Stop Loss ($1.00 Gold move)
     lookback = 5       # 5-bar swing high/low for 5M CHoCH
 
     def init(self):
-        # Calculate rolling 5-bar high and low
         self.swing_high = self.I(lambda x: pd.Series(x).rolling(self.lookback).max(), self.data.High)
         self.swing_low = self.I(lambda x: pd.Series(x).rolling(self.lookback).min(), self.data.Low)
 
@@ -46,7 +41,7 @@ class CallistoTRC(Strategy):
             elif close_price < self.swing_low[-2]: 
                 self.sell(sl=close_price + self.sl_pips, tp=close_price - self.tp_pips)
 
-# 5. RUN BACKTEST
+# 3. RUN BACKTEST
 bt = Backtest(
     data, 
     CallistoTRC, 
